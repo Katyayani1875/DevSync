@@ -1,0 +1,67 @@
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(12px); }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 1.6s infinite cubic-bezier(0.22,1,0.36,1);
+}
+/* src/index.css */
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@700,900,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #000000;
+  color: #FFFFFF;
+  /* Apply the new font globally */
+  font-family: 'Satoshi', sans-serif;
+  cursor: none;
+}
+
+/* --- NEW: Hide the default browser scrollbar --- */
+/* For Webkit-based browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  display: none;
+}
+/* For Firefox */
+body {
+  scrollbar-width: none;
+}
+
+/* Style for the custom cursor elements */
+
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  width: 2rem;
+  height: 2rem;
+  margin-top: -1rem;
+  margin-left: -1rem;
+  border: 2px solid #F7879A;
+  border-radius: 9999px;
+  transition: transform 200ms ease-out;
+}
+
+/* Remote cursor styling */
+.remote-cursor {
+  background-color: rgba(0, 0, 0, 0.3);
+  width: 2px !important;
+  margin-left: -1px;
+}
+
+.remote-cursor-line {
+  width: 2px;
+  height: 20px;
+  background-color: #3b82f6;
+  margin-left: -1px;
+}
+
+/* Monaco editor overrides */
+.monaco-editor .view-overlays .current-line {
+  border: none !important;
+}
