@@ -20,14 +20,28 @@ class ErrorBoundary extends React.Component {
 }
 
 
+
 const EditorPage = () => {
   const [currentCode, setCurrentCode] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [clients, setClients] = useState([]);
   const socketRef = useRef(null);
+  const audioRef = useRef(null);
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+
+  // Initialize audio element
+  useEffect(() => {
+    audioRef.current = new Audio();
+  }, []);
+
+  const playSound = (soundFile) => {
+    if (audioRef.current) {
+      audioRef.current.src = `/sounds/${soundFile}`;
+      audioRef.current.play().catch(e => console.log("Audio play failed:", e));
+    }
+  };
 
 
   useEffect(() => {
@@ -52,18 +66,24 @@ const EditorPage = () => {
         };
 
         // Add all other handlers similarly...
-        const handleUserJoined = ({ connectedUsers, newUser }) => {
+        const handleUserJoined = ({ connectedUsers, newUser, userId }) => {
           if (!isMounted) return;
           setClients(connectedUsers); // Always update clients from server
-          if (newUser !== user?.name) {
-            toast.success(`${newUser} joined the room.`);
+          toast.success(`${newUser} joined the room.`);
+          // Only play sound if this client is not the one who triggered the join
+          if (socketRef.current && socketRef.current.id !== userId) {
+            playSound('join.mp3');
           }
         };
 
-        const handleUserLeft = ({ userName, connectedUsers }) => {
+        const handleUserLeft = ({ userName, connectedUsers, userId }) => {
           if (!isMounted) return;
           setClients(connectedUsers); // Always update clients from server
           toast.error(`${userName} left the room.`);
+          // Only play sound if this client is not the one who triggered the leave
+          if (socketRef.current && socketRef.current.id !== userId) {
+            playSound('leave.mp3');
+          }
         };
 
         socket.on('code-update', handleCodeUpdate);
@@ -95,6 +115,8 @@ const EditorPage = () => {
         };
 
         joinRoomWithRetry();
+
+        // Do not play join sound for creator here; handled in event handler to avoid double sound
 
       } catch (err) {
         if (!isMounted) return;
@@ -144,8 +166,11 @@ const EditorPage = () => {
   }
 
   function leaveRoom() {
-    logout();
-    navigate('/');
+    playSound('leave.mp3'); // Play leave sound for creator
+    setTimeout(() => {
+      logout();
+      navigate('/');
+    }, 200); // Give time for sound to play
   }
 
   if (!user) return <Navigate to="/login" />;
