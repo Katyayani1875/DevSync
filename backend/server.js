@@ -7,8 +7,10 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const roomRoutes = require('./routes/roomRoutes');
+
 const { notFound, errorHandler } = require('./middlewares/errorMiddleware');
 const initializeSocket = require('./sockets/socketManager');
+const executionRoutes = require('./routes/executionRoutes');
 
 // Connect to Database
 connectDB();
@@ -27,8 +29,10 @@ app.use(express.urlencoded({ extended: true }));
 
 // API Routes
 app.get('/api', (req, res) => res.send('DevSync API is running...'));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
+app.use('/api', executionRoutes);
 
 // Custom Error Handling Middleware
 app.use(notFound);

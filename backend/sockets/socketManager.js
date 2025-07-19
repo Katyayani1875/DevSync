@@ -75,11 +75,25 @@ function initializeSocket(io) {
       }
     }));
 
-    // ---- CODE SYNC LOGIC ----
-    socket.on('code-change', validateConnection(({ roomId, code }) => {
+
+    // ---- LANGUAGE CHANGE LOGIC ----
+    socket.on('language-change', validateConnection(({ roomId, language }) => {
       if (!socket.rooms.has(roomId)) return;
+      if (!global.currentLanguage) global.currentLanguage = {};
+      global.currentLanguage[roomId] = language;
+      // Broadcast language change to all room members
+      io.to(roomId).emit('language-update', { language });
+    }));
+
+    // ---- CODE SYNC LOGIC ----
+    socket.on('code-change', validateConnection(({ roomId, code, language }) => {
+      if (!socket.rooms.has(roomId)) return;
+      if (!global.currentLanguage) global.currentLanguage = {};
+      // Update latest code and language
       global.latestRoomCode[roomId] = code;
-      socket.to(roomId).emit('code-update', { code });
+      if (language) global.currentLanguage[roomId] = language;
+      // Broadcast to all other room members
+      socket.to(roomId).emit('code-update', { code, lang: language });
     }));
 
     socket.on('code-sync', validateConnection(({ roomId, code }) => {

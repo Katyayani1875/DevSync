@@ -5,14 +5,16 @@ import './index.css';
 import { BrowserRouter } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Toaster } from 'react-hot-toast';
-
+import { configureMonaco } from './monacoConfig';
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-
+// Initialize Monaco before rendering the app
+configureMonaco();
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId={googleClientId}>
       <BrowserRouter>
         <App />
+        
       </BrowserRouter>
       <Toaster 
         position="top-center"

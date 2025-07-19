@@ -1,8 +1,12 @@
 import { io } from 'socket.io-client';
 
 export const initSocket = async () => {
+  const token = localStorage.getItem('devsync-token');
   const socket = io('http://localhost:5000', {
     transports: ['websocket'],
+    auth: {
+      token: token ? `Bearer ${token}` : undefined
+    },
     reconnection: true,
     reconnectionAttempts: Infinity, // Keep trying to reconnect
     reconnectionDelay: 1000,

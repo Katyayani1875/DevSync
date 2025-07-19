@@ -22,10 +22,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
   if (user) {
     res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      token: generateToken(user._id),
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email
+      },
+      token: generateToken(user._id)
     });
   } else {
     res.status(400);
@@ -42,11 +44,13 @@ const loginUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      token: generateToken(user._id),
+    res.status(200).json({
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email
+      },
+      token: generateToken(user._id)
     });
   } else {
     res.status(401);
@@ -76,10 +80,12 @@ const googleLogin = asyncHandler(async (req, res) => {
 
     // If user exists or was just created, send back our app's token
     res.status(200).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        token: generateToken(user._id),
+        user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email
+        },
+        token: generateToken(user._id)
     });
 });
 

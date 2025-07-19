@@ -1,5 +1,6 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import OutputPanel from '../components/OutputPanel';
 import toast from 'react-hot-toast';
 import { useNavigate, Navigate, useParams } from 'react-router-dom';
 import { initSocket } from '../socket';
@@ -21,15 +22,73 @@ class ErrorBoundary extends React.Component {
 
 
 
+const languageOptions = {
+  javascript: 'JavaScript',
+  typescript: 'TypeScript',
+  python: 'Python',
+  java: 'Java',
+  cpp: 'C++',
+  c: 'C',
+  csharp: 'C#',
+  go: 'Go',
+  rust: 'Rust',
+  ruby: 'Ruby',
+  php: 'PHP',
+  swift: 'Swift',
+  kotlin: 'Kotlin',
+  html: 'HTML',
+  css: 'CSS',
+  json: 'JSON',
+  xml: 'XML',
+  sql: 'SQL',
+  shell: 'Shell/Bash',
+  markdown: 'Markdown',
+  yaml: 'YAML',
+  dockerfile: 'Dockerfile',
+  powershell: 'PowerShell',
+  perl: 'Perl',
+  r: 'R',
+  lua: 'Lua',
+  objectivec: 'Objective-C',
+  scss: 'SCSS',
+  less: 'LESS',
+  plaintext: 'Plain Text',
+  ini: 'INI',
+  graphql: 'GraphQL',
+  handlebars: 'Handlebars',
+  vb: 'Visual Basic',
+};
+
 const EditorPage = () => {
   const [currentCode, setCurrentCode] = useState('');
+  const [language, setLanguage] = useState('javascript'); // Default language
   const [isConnected, setIsConnected] = useState(false);
   const [clients, setClients] = useState([]);
+  const [output, setOutput] = useState('');
+  const [isRunning, setIsRunning] = useState(false);
   const socketRef = useRef(null);
   const audioRef = useRef(null);
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  // Code execution handler
+  const executeCode = async (code, lang) => {
+    setIsRunning(true);
+    setOutput('Running code...');
+    try {
+      const response = await fetch('/api/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, language: lang })
+      });
+      const result = await response.json();
+      setOutput(result.output || result.error);
+    } catch (error) {
+      setOutput(`Error: ${error.message}`);
+    } finally {
+      setIsRunning(false);
+    }
+  };
 
   // Initialize audio element
   useEffect(() => {
@@ -49,6 +108,14 @@ const EditorPage = () => {
     let retryAttempt = 0;
     const maxRetryDelay = 30000; // 30 seconds max
     const listeners = [];
+
+    const handleLanguageUpdate = ({ language: newLanguage }) => {
+      if (!isMounted) return;
+      setLanguage(newLanguage);
+      if (toast && typeof toast === 'function') {
+        toast(`Language changed to ${languageOptions[newLanguage]}`);
+      }
+    };
 
     const init = async () => {
       try {
@@ -89,13 +156,15 @@ const EditorPage = () => {
         socket.on('code-update', handleCodeUpdate);
         socket.on('user-joined', handleUserJoined);
         socket.on('user-left', handleUserLeft);
+        socket.on('language-update', handleLanguageUpdate);
         socket.on('disconnect', () => setIsConnected(false));
         socket.on('reconnect', () => setIsConnected(true));
 
         listeners.push(
           { event: 'code-update', handler: handleCodeUpdate },
           { event: 'user-joined', handler: handleUserJoined },
-          { event: 'user-left', handler: handleUserLeft }
+          { event: 'user-left', handler: handleUserLeft },
+          { event: 'language-update', handler: handleLanguageUpdate }
         );
 
         // Join room with retry logic
@@ -197,16 +266,22 @@ const EditorPage = () => {
             </button>
           </div>
         </div>
-        <div className="flex-1 overflow-hidden">
-          <ErrorBoundary>
-            <Editor
-              socketRef={socketRef}
-              roomId={roomId}
-              onCodeChange={handleCodeChange}
-              initialCode={currentCode}
-              username={user?.name}
-            />
-          </ErrorBoundary>
+        <div className="flex-1 overflow-hidden flex">
+          <div className="flex-1 overflow-hidden">
+            <ErrorBoundary>
+              <Editor
+                socketRef={socketRef}
+                roomId={roomId}
+                onCodeChange={setCurrentCode}
+                initialCode={currentCode}
+                username={user?.name}
+                language={language}
+                onExecute={executeCode}
+                currentLanguage={language}
+              />
+            </ErrorBoundary>
+          </div>
+          <OutputPanel output={output} isRunning={isRunning} />
         </div>
       </div>
     </div>

@@ -16,29 +16,36 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
+
     const login = async (email, password) => {
         const { data } = await axios.post('http://localhost:5000/api/auth/login', { email, password });
-        localStorage.setItem('devsync-user', JSON.stringify(data));
-        setUser(data);
+        localStorage.setItem('devsync-user', JSON.stringify(data.user)); // Store user data
+        localStorage.setItem('devsync-token', data.token); // Store token separately
+        setUser(data.user);
         return data;
     };
 
     const register = async (name, email, password) => {
         const { data } = await axios.post('http://localhost:5000/api/auth/register', { name, email, password });
-        localStorage.setItem('devsync-user', JSON.stringify(data));
-        setUser(data);
+        localStorage.setItem('devsync-user', JSON.stringify(data.user));
+        localStorage.setItem('devsync-token', data.token);
+        setUser(data.user);
         return data;
     };
 
+
     const logout = () => {
         localStorage.removeItem('devsync-user');
+        localStorage.removeItem('devsync-token');
         setUser(null);
     };
 
+
     const googleAuth = async (credential) => {
         const { data } = await axios.post('http://localhost:5000/api/auth/google', { credential });
-        localStorage.setItem('devsync-user', JSON.stringify(data));
-        setUser(data);
+        localStorage.setItem('devsync-user', JSON.stringify(data.user));
+        localStorage.setItem('devsync-token', data.token);
+        setUser(data.user);
         return data;
     };
 
